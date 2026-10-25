@@ -1,0 +1,43 @@
+name: Build Family Guard APK
+
+on:
+  workflow_dispatch:
+  push:
+    paths:
+      - "family-guard-android-starter.zip"
+      - ".github/workflows/build.yml"
+
+permissions:
+  contents: read
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@v4
+
+      - name: Set up Java
+        uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: "21"
+
+      - name: Set up Gradle
+        uses: gradle/actions/setup-gradle@v4
+        with:
+          gradle-version: "8.9"
+
+      - name: Extract Android project
+        run: unzip -q family-guard-android-starter.zip -d extracted
+
+      - name: Build debug APK
+        run: gradle -p extracted/parental-control-android assembleDebug
+
+      - name: Upload APK
+        uses: actions/upload-artifact@v4
+        with:
+          name: family-guard-debug-apk
+          path: extracted/parental-control-android/app/build/outputs/apk/debug/app-debug.apk
+          if-no-files-found: error
+          retention-days: 7
